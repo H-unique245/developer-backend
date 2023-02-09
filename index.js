@@ -14,13 +14,13 @@ app.get("/",(req,res)=>{
     res.send("Welcome to Backend!!");
 });
 
-app.get("/fetchUsers",async(req,res)=>{
+app.post("/fetchUsers",async(req,res)=>{
     try{
-        let data= await axios.get("https://randomuser.me/api/?results=10")
+        let data= await axios.get("https://randomuser.me/api/?results=50")
        let result= data.data.results;
        let users= await UserModel.insertMany(result);
     //    users.save();
-    console.log(users)
+    // console.log(users)
         res.status(200).send("Data added Succeess")
     }
     catch(err){
@@ -31,15 +31,27 @@ app.get("/fetchUsers",async(req,res)=>{
 app.get("/userDetails",async(req,res)=>{
     const {page,limit,filter}=req.query;
     console.log(page,limit,filter);
-    if(filter !=""){
-        const data=await UserModel.find({gender:filter}).skip((page-1)*limit).limit(limit);
-       console.log(data.length)
-        res.send(data);
+    try{
+        if(filter !==""){
+            const total=await UserModel.find({gender:filter}).count();
+            const data=await UserModel.find({gender:filter}).skip((page-1)*limit).limit(limit);
+            const totalPage= (total/limit) 
+            console.log(totalPage,"pages")
+            res.send({data:data,totalPages:totalPage});
+        }
+        else{
+            //70 
+            const total=await UserModel.find().count(); 
+            const data=await UserModel.find({}).skip((page-1)*limit).limit(limit);
+            const totalPage= (total/limit) 
+           console.log(totalPage,"pages")
+
+            res.send({data:data,totalPages:totalPage});
+        } 
     }
-    else{
-        const data=await UserModel.find({}).skip((page-1)*limit).limit(limit);
-        res.send(data);
-    } 
+    catch(err){
+          res.send(err.message)
+    }
 })
 
 app.delete("/deleteUsers",async(req,res)=>{

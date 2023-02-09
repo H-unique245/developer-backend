@@ -35,7 +35,7 @@ app.get("/userDetails",async(req,res)=>{
         if(filter !==""){
             const total=await UserModel.find({gender:filter}).count();
             const data=await UserModel.find({gender:filter}).skip((page-1)*limit).limit(limit);
-            const totalPage= (total/limit) 
+            const totalPage= Math.ceil(total/limit) 
             console.log(totalPage,"pages")
             res.send({data:data,totalPages:totalPage});
         }
